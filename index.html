@@ -368,6 +368,40 @@
         <h2 class="font-bold mt-4 mb-2">Room Assets List</h2>
         <table class="w-full border text-[12px] mb-4">
 
-<!-- Tools -->
+
+       <!-- Tools -->
     <div id="tools" class="tab-content bg-white p-4 rounded shadow hidden">
-       
+        <h2 class="font-bold mb-2 text-sm">Add Tool</h2>
+        <input id="toolName" placeholder="Tool Name" class="w-full border p-2 mb-2 text-sm">
+        <input id="toolQty" type="number" placeholder="Qty" class="w-full border p-2 mb-2 text-sm">
+        <button onclick="addTool()" class="w-full bg-orange-600 text-white p-2 rounded mb-4">Save Tool</button>
+        <table class="w-full border text-[12px] mb-4">
+            <tr class="bg-gray-200"><th>Name</th><th>Qty</th><th>Action</th></tr>
+            <tbody id="toolsTableBody"></tbody>
+        </table>
+        <button onclick="window.print()" class="no-print mt-2 w-full bg-gray-800 text-white p-2 rounded">🖨️ Print Tools</button>
+    </div>
+
+    <!-- History -->
+    <div id="history" class="tab-content bg-white p-4 rounded shadow hidden">
+        <h2 class="font-bold mb-2">Transaction History</h2>
+        <table class="w-full border text-[10px] mb-4">
+            <tr class="bg-gray-200"><th>Item</th><th>Open</th><th>Recv</th><th>Used</th><th>Close</th><th>Action</th></tr>
+            <tbody id="historyTable"></tbody>
+        </table>
+        <button onclick="window.print()" class="no-print mt-2 w-full bg-gray-800 text-white p-2 rounded">🖨️ Print History</button>
+    </div>
+
+    <!-- Report -->
+    <div id="report" class="tab-content bg-white p-4 rounded shadow hidden">
+        <div class="flex gap-2 mb-4">
+            <button onclick="exportToExcel()" class="flex-1 bg-green-700 text-white p-2 rounded">📊 Excel</button>
+            <button onclick="window.print()" class="flex-1 bg-gray-800 text-white p-2 rounded">🖨️ Print</button>
+        </div>
+        <table class="w-full border text-[10px]">
+            <tr class="bg-gray-200"><th>Item</th><th>Open</th><th>Recv</th><th>Used</th><th>Close</th><th>Action</th></tr>
+            <tbody id="reportTable"></tbody>
+        </table>
+    </div>
+</body>
+        </html> 
