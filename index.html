@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Dashboard Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print { .no-print { display: none; } }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZ5sSFAbbl_OoJUg36Nqgcz93Pwy4JFVQ",
+            authDomain: "room-history.firebaseapp.com",
+            projectId: "room-history",
+            storageBucket: "room-history.firebasestorage.app",
+            messagingSenderId: "246497141875",
+            appId: "1:246497141875:web:51cc6c732290e5951b7606"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- ডিফল্ট লোডিং ---
+        window.onload = () => { loadDashboardData(); };
+
+        // --- ট্যাব সুইচ ---
+        window.showTab = (id) => {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'dashboard') loadDashboardData();
+            if(id === 'master') loadMasterItems();
+            if(id === 'history' || id === 'report') loadData();
+            if(id === 'entry') loadInventory();
+            if(id === 'asset') { loadAssets(); loadSettings(); }
+            if(id === 'tools') loadTools();
+        };
+
+        // --- Dashboard Data ---
+        async function loadDashboardData() {
+            const transSnap = await getDocs(collection(db, "transactions"));
+            const stockTbody = document.getElementById('dashboardStockTable');
+            if(stockTbody) {
+                stockTbody.innerHTML = "";
+                transSnap.forEach(tDoc => {
+                    const d = tDoc.data();
+                    if(d.name) stockTbody.innerHTML += `<tr><td class="border p-2">${d.name}</td><td class="border p-2">${d.opening}</td><td class="border p-2">${d.recv}</td><td class="border p-2">${d.used}</td><td class="border p-2">${d.closing}</td></tr>`;
+                });
+            }
+            const assetSnap = await getDocs(collection(db, "assets"));
+            const assetTbody = document.getElementById('dashboardAssetTable');
+            if(assetTbody) {
+                assetTbody.innerHTML = "";
+                assetSnap.forEach(aDoc => {
+                    const a = aDoc.data();
+                    assetTbody.innerHTML += `<tr><td class="border p-2">${a.name}</td><td class="border p-2 text-center">${a.working}</td><td class="border p-2 text-center">${a.repair}</td><td class="border p-2 text-center">${a.missing || 0}</td></tr>`;
+                });
+            }
+        }
+
+        // --- Master Page ---
+        window.addMasterItem = async () => {
+            const name = document.getElementById('masterItemName').value;
+            const stock = parseInt(document.getElementById('masterInitialStock').value) || 0;
+            if(!name) return alert("আইটেম নাম দিন!");
+            await addDoc(collection(db, "inventory"), { name, stock });
+            alert("আইটেম যোগ হয়েছে!");
+            location.reload();
+        };
+
+        window.deleteMasterItem = async (id) => {
+            if(confirm("এই আইটেমটি ডিলিট করতে চান?")) {
+                await deleteDoc(doc(db, "inventory", id));
+                loadMasterItems();
+            }
+        };
+
+        window.editMasterItem = async (id) => {
+            const currentName = document.getElementById(`master-name-${id}`).innerText;
+            const currentStock = parseInt(document.getElementById(`master-stock-${id}`).innerText) || 0;
+            const newName = prompt("আইটেমের নতুন নাম লিখুন:", currentName);
+            const newStock = prompt("নতুন স্টক সংখ্যা লিখুন:", currentStock);
+            if(newName !== null && newStock !== null && newName.trim() !== "") {
+                await updateDoc(doc(db, "inventory", id), { name: newName, stock: parseInt(newStock) || 0 });
+                loadMasterItems();
+            }
+        };
+
+        async function loadMasterItems() {
+            const snapshot = await getDocs(collection(db, "inventory"));
+            const tbody = document.getElementById('masterTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            snapshot.forEach(docSnap => {
+                const item = docSnap.data();
+                if (item && item.name) {
+                    tbody.innerHTML += `<tr>
+                        <td id="master-name-${docSnap.id}" class="border p-2">${item.name}</td>
+                        <td id="master-stock-${docSnap.id}" class="border p-2 text-center">${item.stock || 0}</td>
+                        <td class="border p-2 text-center">
+                            <button onclick="editMasterItem('${docSnap.id}')" class="text-blue-600 mr-2">✏️</button> 
+                            <button onclick="deleteMasterItem('${docSnap.id}')" class="text-red-600">🗑️</button>
+                        </td>
+                    </tr>`;
+                }
+            });
+        }
+
+        // --- Daily Entry ---
+        async function loadInventory() {
+            const snapshot = await getDocs(collection(db, "inventory"));
+            const select = document.getElementById('itemSelect');
+            if(!select) return;
+            select.innerHTML = '<option value="">-- আইটেম নির্বাচন করুন --</option>';
+            snapshot.forEach(iDoc => {
+                const item = iDoc.data();
+                select.innerHTML += `<option value="${iDoc.id}" data-stock="${item.stock}">${item.name}</option>`;
+            });
+        }
+
+        window.fillOpening = () => {
+            const select = document.getElementById('itemSelect');
+            const stock = select.options[select.selectedIndex].getAttribute('data-stock');
+            document.getElementById('opening').value = stock || 0;
+        };
+
+        window.saveTransaction = async () => {
+            const select = document.getElementById('itemSelect');
+            const itemId = select.value;
+            const itemName = select.options[select.selectedIndex].text;
+            const opening = parseInt(document.getElementById('opening').value) || 0;
+            const recv = parseInt(document.getElementById('recv').value) || 0;
+            const used = parseInt(document.getElementById('used').value) || 0;
+            const closing = (opening + recv) - used;
+            if(!itemId) return alert("আইটেম সিলেক্ট করুন!");
+            await updateDoc(doc(db, "inventory", itemId), { stock: closing });
+            await addDoc(collection(db, "transactions"), { name: itemName, opening, recv, used, closing, date: new Date().toLocaleDateString() });
+            alert("সফল! নতুন স্টক: " + closing);
+            showTab('dashboard');
+        };
+
+        // --- Settings (Facility Info) ---
+        window.saveSettings = async () => {
+            const apt = document.getElementById('totalApt').value;
+            const room = document.getElementById('totalRoom').value;
+            await setDoc(doc(db, "settings", "facilityInfo"), { totalApartment: apt, totalRoom: room });
+            alert("তথ্য সেভ হয়েছে!");
+        };
+
+        async function loadSettings() {
+            const docRef = await getDoc(doc(db, "settings", "facilityInfo"));
+            if(docRef.exists()) {
+                const data = docRef.data();
+                document.getElementById('totalApt').value = data.totalApartment || "";
+                document.getElementById('totalRoom').value = data.totalRoom || "";
+            }
+        }
+
+        // --- Asset ---
+        window.addAsset = async () => {
+            const name = document.getElementById('assetName').value;
+            const working = parseInt(document.getElementById('assetWorking').value) || 0;
+            const repair = parseInt(document.getElementById('assetRepair').value) || 0;
+            const missing = parseInt(document.getElementById('assetMissing').value) || 0;
+            if(!name) return alert("আইটেমের নাম লিখুন!");
+            await addDoc(collection(db, "assets"), { name, working, repair, missing });
+            alert("Asset Added!");
+            loadAssets();
+        };
+
+        window.deleteAsset = async (id) => {
+            if(confirm("ডিলিট করতে চান?")) {
+                await deleteDoc(doc(db, "assets", id));
+                loadAssets();
+            }
+        };
+
+        window.editAsset = async (id, name, working, repair, missing) => {
+            const newWorking = prompt("Working:", working);
+            const newRepair = prompt("Repair:", repair);
+            const newMissing = prompt("Missing (নাই):", missing);
+            if(newWorking !== null && newRepair !== null && newMissing !== null) {
+                await updateDoc(doc(db, "assets", id), { working: parseInt(newWorking), repair: parseInt(newRepair), missing: parseInt(newMissing) });
+                loadAssets();
+            }
+        };
+
+        async function loadAssets() {
+            const snapshot = await getDocs(collection(db, "assets"));
+            const tbody = document.getElementById('assetTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            snapshot.forEach(aDoc => {
+                const a = aDoc.data();
+                tbody.innerHTML += `<tr>
+                    <td class="border p-2">${a.name}</td>
+                    <td class="border p-2 text-center">${a.working}</td>
+                    <td class="border p-2 text-center">${a.repair}</td>
+                    <td class="border p-2 text-center">${a.missing || 0}</td>
+                    <td class="border p-2 text-center">
+                        <button onclick="editAsset('${aDoc.id}', '${a.name}', ${a.working}, ${a.repair}, ${a.missing || 0})" class="text-blue-600">✏️</button> 
+                        <button onclick="deleteAsset('${aDoc.id}')" class="text-red-600">🗑️</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // --- Tools ---
+        window.addTool = async () => {
+            const name = document.getElementById('toolName').value;
+            const qty = parseInt(document.getElementById('toolQty').value) || 0;
+            if(!name) return alert("টুলের নাম লিখুন!");
+            await addDoc(collection(db, "tools"), { name, qty });
+            alert("Tool Added!");
+            loadTools();
+        };
+
+        window.deleteTool = async (id) => {
+            if(confirm("ডিলিট করতে চান?")) {
+                await deleteDoc(doc(db, "tools", id));
+                loadTools();
+            }
+        };
+
+        async function loadTools() {
+            const snapshot = await getDocs(collection(db, "tools"));
+            const tbody = document.getElementById('toolsTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            snapshot.forEach(tDoc => {
+                const t = tDoc.data();
+                tbody.innerHTML += `<tr><td class="border p-2">${t.name}</td><td class="border p-2">${t.qty}</td><td class="border p-2"><button onclick="deleteTool('${tDoc.id}')" class="text-red-600">🗑️</button></td></tr>`;
+            });
+        }
+
+        // --- Transaction History & Report ---
+        window.deleteTransaction = async (id) => {
+            if(confirm("ডিলিট করতে চান?")) {
+                await deleteDoc(doc(db, "transactions", id));
+                loadData();
+            }
+        };
+
+        window.editTransaction = async (id, name, opening, recv, used, closing) => {
+            const newRecv = prompt("Receive:", recv);
+            const newUsed = prompt("Using:", used);
+            if(newRecv !== null && newUsed !== null) {
+                const newClosing = (parseInt(opening) + parseInt(newRecv)) - parseInt(newUsed);
+                await updateDoc(doc(db, "transactions", id), { recv: parseInt(newRecv), used: parseInt(newUsed), closing: newClosing });
+                loadData();
+            }
+        };
+
+        async function loadData() {
+            const snapshot = await getDocs(collection(db, "transactions"));
+            const tbodyHistory = document.getElementById('historyTable');
+            const tbodyReport = document.getElementById('reportTable');
+            if(tbodyHistory) tbodyHistory.innerHTML = "";
+            if(tbodyReport) tbodyReport.innerHTML = "";
+            let reportMap = {}; 
+            snapshot.forEach(hDoc => {
+                const d = hDoc.data();
+                if(d.name) {
+                    if(tbodyHistory) tbodyHistory.innerHTML += `<tr><td class="border p-2">${d.name}</td><td class="border p-2">${d.opening}</td><td class="border p-2">${d.recv}</td><td class="border p-2">${d.used}</td><td class="border p-2">${d.closing}</td><td class="border p-2 text-center"><button onclick="editTransaction('${hDoc.id}', '${d.name}', ${d.opening}, ${d.recv}, ${d.used}, ${d.closing})" class="text-blue-600">✏️</button> <button onclick="deleteTransaction('${hDoc.id}')" class="text-red-600">🗑️</button></td></tr>`;
+                    if (!reportMap[d.name]) reportMap[d.name] = { name: d.name, opening: parseInt(d.opening || 0), recv: 0, used: 0, lastId: hDoc.id, lastOpening: parseInt(d.opening || 0) };
+                    reportMap[d.name].recv += parseInt(d.recv || 0);
+                    reportMap[d.name].used += parseInt(d.used || 0);
+                    reportMap[d.name].lastId = hDoc.id; 
+                }
+            });
+            if(tbodyReport) {
+                for (const itemName in reportMap) {
+                    const item = reportMap[itemName];
+                    const closing = (item.opening + item.recv) - item.used;
+                    tbodyReport.innerHTML += `<tr><td class="border p-2 font-bold">${item.name}</td><td class="border p-2">${item.opening}</td><td class="border p-2">${item.recv}</td><td class="border p-2">${item.used}</td><td class="border p-2 font-bold">${closing}</td><td class="border p-2 text-center"><button onclick="editTransaction('${item.lastId}', '${item.name}', ${item.opening}, ${item.recv}, ${item.used}, ${closing})" class="text-blue-600">✏️</button> <button onclick="deleteTransaction('${item.lastId}')" class="text-red-600">🗑️</button></td></tr>`;
+                }
+            }
+        }
+
+        window.exportToExcel = () => {
+            let csv = "Item,Opening,Recv,Used,Closing\n";
+            document.querySelectorAll('#reportTable tr').forEach(row => { csv += Array.from(row.cells).slice(0,5).map(c => c.innerText).join(",") + "\n"; });
+            let blob = new Blob([csv], { type: 'text/csv' });
+            let a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'Report.csv'; a.click();
+        };
+    </script>
+</head>
+<body class="bg-gray-100 p-2">
+
+    <!-- Menu -->
+    <div class="no-print grid grid-cols-7 gap-1 mb-4">
+        <button onclick="showTab('dashboard')" class="bg-blue-600 text-white p-1 rounded text-[8px]">Dash</button>
+        <button onclick="showTab('master')" class="bg-indigo-600 text-white p-1 rounded text-[8px]">Master</button>
+        <button onclick="showTab('entry')" class="bg-green-600 text-white p-1 rounded text-[8px]">Entry</button>
+        <button onclick="showTab('asset')" class="bg-yellow-600 text-white p-1 rounded text-[8px]">Asset</button>
+        <button onclick="showTab('tools')" class="bg-orange-600 text-white p-1 rounded text-[8px]">Tools</button>
+        <button onclick="showTab('history')" class="bg-purple-600 text-white p-1 rounded text-[8px]">Hist</button>
+        <button onclick="showTab('report')" class="bg-red-600 text-white p-1 rounded text-[8px]">Rep</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="tab-content bg-white p-4 rounded shadow">
+        <h2 class="font-bold mb-2">Transactions</h2>
+        <table class="w-full border text-[10px] mb-6">
+            <tr class="bg-gray-200"><th>Item</th><th>Open</th><th>Recv</th><th>Used</th><th>Close</th></tr>
+            <tbody id="dashboardStockTable"></tbody>
+        </table>
+        <h2 class="font-bold mb-2">Assets</h2>
+        <table class="w-full border text-[10px] mb-4">
+            <tr class="bg-gray-200"><th>Item</th><th>Working</th><th>Repair</th><th>Missing</th></tr>
+            <tbody id="dashboardAssetTable"></tbody>
+        </table>
+        <button onclick="window.print()" class="no-print mt-2 w-full bg-gray-800 text-white p-2 rounded">🖨️ Print Dashboard</button>
+    </div>
+
+    <!-- Master -->
+    <div id="master" class="tab-content bg-white p-4 rounded shadow hidden">
+        <h2 class="font-bold mb-2">Add Master Item</h2>
+        <input id="masterItemName" placeholder="Item Name" class="w-full border p-2 mb-2">
+        <input id="masterInitialStock" type="number" placeholder="Opening Stock" class="w-full border p-2 mb-2">
+        <button onclick="addMasterItem()" class="w-full bg-indigo-600 text-white p-2 rounded mb-6">Save</button>
+        
+        <!-- Master Items List -->
+        <h2 class="font-bold mb-2 text-sm">Master Items List</h2>
+        <table class="w-full border text-[12px] mb-4">
+            <tr class="bg-gray-200">
+                <th class="border p-2 text-left">Item Name</th>
+                <th class="border p-2">Stock</th>
+                <th class="border p-2">Action</th>
+            </tr>
+            <tbody id="masterTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Entry -->
+    <div id="entry" class="tab-content bg-white p-4 rounded shadow hidden">
+        <h2 class="font-bold mb-2">Stock Entry</h2>
+        <select id="itemSelect" onchange="fillOpening()" class="w-full border p-2 mb-2"></select>
+        <input type="number" id="opening" placeholder="Opening" class="w-full border p-2 mb-2" readonly>
+        <input type="number" id="recv" placeholder="Recv" class="w-full border p-2 mb-2">
+        <input type="number" id="used" placeholder="Used" class="w-full border p-2 mb-2">
+        <button onclick="saveTransaction()" class="w-full bg-green-600 text-white p-2 rounded">Update</button>
+    </div>
+
+    <!-- Asset & Facility Info -->
+    <div id="asset" class="tab-content bg-white p-4 rounded shadow hidden">
+        <!-- Facility Info -->
+        <div class="mb-6 p-3 bg-indigo-50 border-l-4 border-indigo-500 rounded shadow-sm">
+            <h2 class="font-bold text-sm mb-2 text-indigo-800">Facility Information</h2>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <input type="number" id="totalApt" placeholder="Total Apartment" class="border p-2 text-sm rounded">
+                <input type="number" id="totalRoom" placeholder="Total Room" class="border p-2 text-sm rounded">
+            </div>
+            <button onclick="saveSettings()" class="w-full bg-indigo-600 text-white p-1 rounded text-sm font-bold">Save Info</button>
+        </div>
+        <!-- Asset List -->
+        <h2 class="font-bold mb-2 text-sm">Add/Manage Assets</h2>
+        <input id="assetName" placeholder="Item Name" class="w-full border p-2 mb-2 text-sm">
+        <div class="grid grid-cols-3 gap-2 mb-2">
+            <input type="number" id="assetWorking" placeholder="Working" class="border p-2 text-sm">
+            <input type="number" id="assetRepair" placeholder="Repair" class="border p-2 text-sm">
+            <input type="number" id="assetMissing" placeholder="Missing" class="border p-2 text-sm">
+        </div>
+        <button onclick="addAsset()" class="w-full bg-yellow-600 text-white p-2 rounded mb-4">Save Asset</button>
+        <h2 class="font-bold mt-4 mb-2">Room Assets List</h2>
+        <table class="w-full border text-[12px] mb-4">
+
+<!-- Tools -->
+    <div id="tools" class="tab-content bg-white p-4 rounded shadow hidden">
+       
