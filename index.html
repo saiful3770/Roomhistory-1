@@ -365,7 +365,7 @@
                     <td id="asset-working-${aDoc.id}" class="border-b p-3 text-center text-emerald-600 font-bold bg-emerald-50/30">${a.working || 0}</td>
                     <td id="asset-repair-${aDoc.id}" class="border-b p-3 text-center text-amber-600 font-bold bg-amber-50/30">${a.repair || 0}</td>
                     <td id="asset-missing-${aDoc.id}" class="border-b p-3 text-center text-rose-600 font-bold bg-rose-50/30">${a.missing || 0}</td>
-                    <td class="border-b p-3 text-center">
+                    <td class="border-b p-3 text-center no-print">
                         <button onclick="editAsset('${aDoc.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-all mr-2 font-medium text-xs">✏️ Edit</button> 
                         <button onclick="deleteAsset('${aDoc.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-md transition-all font-medium text-xs">🗑️ Delete</button>
                     </td>
@@ -399,7 +399,7 @@
             tbody.innerHTML = "";
             snapshot.forEach(tDoc => {
                 const t = tDoc.data();
-                tbody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="border-b p-3 font-semibold text-slate-800">${t.name}</td><td class="border-b p-3 text-center font-bold text-orange-600 bg-orange-50/40">${t.qty}</td><td class="border-b p-3 text-center"><button onclick="deleteTool('${tDoc.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-md transition-all font-medium text-xs">🗑️ Delete</button></td></tr>`;
+                tbody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="border-b p-3 font-semibold text-slate-800">${t.name}</td><td class="border-b p-3 text-center font-bold text-orange-600 bg-orange-50/40">${t.qty}</td><td class="border-b p-3 text-center no-print"><button onclick="deleteTool('${tDoc.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-md transition-all font-medium text-xs">🗑️ Delete</button></td></tr>`;
             });
         }
 
@@ -535,7 +535,7 @@
                 for (const itemName in reportMap) {
                     const item = reportMap[itemName];
                     const closing = (item.opening + item.recv) - item.used;
-                    tbodyReport.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="border-b p-3 font-bold text-slate-850">${item.name}</td><td class="border-b p-3 text-center text-slate-600 font-medium">${item.opening}</td><td class="border-b p-3 text-center text-emerald-600 font-bold">+${item.recv}</td><td class="border-b p-3 text-center text-rose-600 font-bold">-${item.used}</td><td class="border-b p-3 text-center font-black text-slate-900 bg-slate-100">${closing}</td><td class="border-b p-3 text-center no-print"><button onclick="editTransaction('${item.lastId}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded transition-all mr-2 text-xs font-medium">✏️ Edit</button> <button onclick="deleteTransaction('${item.lastId}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-3 py-1 rounded transition-all text-xs font-medium">🗑️ Delete</button></td></tr>`;
+                    tbodyReport.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="border-b p-3 font-bold text-slate-850">${item.name}</td><td class="border-b p-3 text-center text-slate-600 font-medium">${item.opening}</td><td class="border-b p-3 text-center text-emerald-600 font-bold">+${item.recv}</td><td class="border-b p-3 text-center text-rose-600 font-bold">-${item.used}</td><td class="border-b p-3 text-center font-black text-slate-900 bg-slate-100">${closing}</td><td class="border-b p-3 text-center no-print"><button onclick="editTransaction('${item.lastId}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded transition-all mr-2 text-xs font-medium">✏️ Edit</button> <button onclick="deleteTransaction('${item.lastId}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-3 py-1 rounded transition-all text-xs font-medium">🗑️ Delete</button></td></tr> vulnerabilities compiled -->`;
                 }
             }
         }
@@ -558,7 +558,7 @@
             <div class="text-3xl mt-2 tracking-widest select-none" style="color: #FFD700;">★★★★</div>
         </div>
 
-        <!-- UPDATED FEATURE: Day-by-Day Picker WITH "Show All Dates" master toggle button -->
+        <!-- Day-by-Day Picker WITH "Show All Dates" master toggle button -->
         <div class="no-print max-w-md mx-auto my-6 p-4 bg-white rounded-2xl shadow-lg border-2 border-indigo-500/30 text-center space-y-3">
             <label class="block text-xs font-black uppercase tracking-widest text-indigo-900">📅 তারিখ ফিল্টার মোড (View History Range)</label>
             <div class="flex gap-2">
@@ -598,7 +598,6 @@
 
         <!-- Dashboard Module Container -->
         <div id="dashboard" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-slate-200 space-y-6">
-            
             <!-- SECTION 1: Live Stock Balance Matrix -->
             <div class="border-l-4 border-indigo-600 bg-gradient-to-r from-indigo-50/60 to-transparent p-3 rounded-r-xl">
                 <h2 class="font-black text-lg text-indigo-950 flex items-center gap-2">📈 Current Inventory Overview</h2>
@@ -636,7 +635,7 @@
                 </table>
             </div>
 
-            <!-- SECTION 3: Transaction Ledger History Hub (Filtered or All) -->
+            <!-- SECTION 3: Transaction Ledger History Hub -->
             <div class="border-l-4 border-purple-600 bg-gradient-to-r from-purple-50/60 to-transparent p-3 rounded-r-xl">
                 <h2 class="font-black text-lg text-purple-950 flex items-center gap-2">⏳ Selected Day Transaction Records</h2>
             </div>
@@ -656,7 +655,7 @@
                 </table>
             </div>
 
-            <!-- SECTION 4: Room Activities Logs History Hub (Filtered or All) -->
+            <!-- SECTION 4: Room Activities Logs History Hub -->
             <div class="border-l-4 border-sky-600 bg-gradient-to-r from-sky-50/60 to-transparent p-3 rounded-r-xl">
                 <h2 class="font-black text-lg text-sky-950 flex items-center gap-2">📋 Selected Day Room Logs Statement</h2>
             </div>
@@ -731,7 +730,7 @@
 
         <!-- Asset Controls Matrix Module -->
         <div id="asset" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-slate-200 hidden">
-            <div class="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-indigo-50 border border-blue-100 rounded-2xl shadow-sm">
+            <div class="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl shadow-sm no-print">
                 <h2 class="font-black text-xs mb-3 text-indigo-950 tracking-wider uppercase">Property Profile Configurations</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                     <div class="space-y-1">
@@ -746,17 +745,26 @@
                 <button onclick="saveSettings()" class="w-full bg-indigo-700 text-white p-2.5 rounded-xl text-xs font-black tracking-widest transition-all uppercase shadow-sm">Save Profile Parameters</button>
             </div>
 
-            <div class="border-b pb-3 mb-4">
+            <div class="border-b pb-3 mb-4 no-print">
                 <h2 class="font-black text-lg text-slate-900">Provision Operational Asset Nodes</h2>
             </div>
-            <input id="assetName" placeholder="Asset Class Description" class="w-full border border-slate-300 p-3 mb-4 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50/50">
-            <div class="grid grid-cols-3 gap-3 mb-4">
-                <input type="number" id="assetWorking" placeholder="Working" class="border border-emerald-300 bg-emerald-50/10 p-3 rounded-xl text-sm text-center font-bold">
-                <input type="number" id="assetRepair" placeholder="Repair" class="border border-amber-300 bg-amber-50/10 p-3 rounded-xl text-sm text-center font-bold">
-                <input type="number" id="assetMissing" placeholder="Missing" class="border border-rose-300 bg-rose-50/10 p-3 rounded-xl text-sm text-center font-bold">
+            <div class="no-print">
+                <input id="assetName" placeholder="Asset Class Description" class="w-full border border-slate-300 p-3 mb-4 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50/50">
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <input type="number" id="assetWorking" placeholder="Working" class="border border-emerald-300 bg-emerald-50/10 p-3 rounded-xl text-sm text-center font-bold">
+                    <input type="number" id="assetRepair" placeholder="Repair" class="border border-amber-300 bg-amber-50/10 p-3 rounded-xl text-sm text-center font-bold">
+                    <input type="number" id="assetMissing" placeholder="Missing" class="border border-rose-300 bg-rose-50/10 p-3 rounded-xl text-sm text-center font-bold">
+                </div>
+                <button onclick="addAsset()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white p-3 rounded-xl font-bold transition-all shadow-md mb-6">➕ Add Asset State Node</button>
             </div>
-            <button onclick="addAsset()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white p-3 rounded-xl font-bold transition-all shadow-md mb-6">➕ Add Asset State Node</button>
             
+            <div class="border-b pb-3 mb-3">
+                <h2 class="font-bold text-md text-amber-800 flex justify-between items-center">
+                    <span>🏢 Property & Assets Report Sheet</span>
+                    <!-- NEW SEPARATE PRINT BUTTON FOR ASSETS -->
+                    <button onclick="window.print()" class="no-print bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm">🖨️ Print Assets Only</button>
+                </h2>
+            </div>
             <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm mb-4">
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
@@ -775,22 +783,29 @@
 
         <!-- Technical Deployment Tools Module -->
         <div id="tools" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-slate-200 hidden">
-            <div class="border-b pb-3 mb-4">
+            <div class="border-b pb-3 mb-4 no-print">
                 <h2 class="font-black text-lg text-slate-900">Provision Technical Deployment Tools</h2>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 no-print">
                 <input id="toolName" placeholder="Tool Specifications" class="border border-slate-300 p-3 rounded-xl text-sm outline-none bg-slate-50/50">
                 <input id="toolQty" type="number" placeholder="Inventory Units Count" class="border border-slate-300 p-3 rounded-xl text-sm outline-none bg-slate-50/50">
             </div>
-            <button onclick="addTool()" class="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white p-3 rounded-xl font-bold transition-all shadow-md mb-6">Save Hardware Tool Record</button>
+            <button onclick="addTool()" class="no-print w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white p-3 rounded-xl font-bold transition-all shadow-md mb-6">Save Hardware Tool Record</button>
             
+            <div class="border-b pb-3 mb-3">
+                <h2 class="font-bold text-md text-orange-800 flex justify-between items-center">
+                    <span>🛠️ Tools Inventory Registry</span>
+                    <!-- NEW SEPARATE PRINT BUTTON FOR TOOLS -->
+                    <button onclick="window.print()" class="no-print bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm">🖨️ Print Tools Only</button>
+                </h2>
+            </div>
             <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm mb-4">
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
                         <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
                             <th class="p-3">Tool Specification</th>
                             <th class="p-3 text-center">Units Level Base</th>
-                            <th class="p-3 text-center">Purge Action</th>
+                            <th class="p-3 text-center no-print">Purge Action</th>
                         </tr>
                     </thead>
                     <tbody id="toolsTableBody" class="divide-y divide-slate-100"></tbody>
@@ -800,20 +815,26 @@
 
         <!-- Room Activity Work Logs Tracker Module -->
         <div id="worklog" class="tab-content bg-white p-6 rounded-2xl shadow-md border border-slate-200 hidden">
-            <div class="border-b pb-3 mb-4">
+            <div class="border-b pb-3 mb-4 no-print">
                 <h2 class="font-black text-lg text-emerald-800">Log Room Specific Operational Tasks</h2>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                <input id="serialNo" placeholder="Index/Serial No" class="border border-slate-300 p-3 text-sm rounded-xl outline-none">
-                <input id="roomNo" placeholder="Target Room ID *" class="border border-slate-300 p-3 text-sm rounded-xl outline-none font-bold">
-                <input id="totalRoomField" type="number" placeholder="Comprehensive Rooms Count" class="border border-slate-300 p-3 text-sm rounded-xl outline-none">
+            <div class="no-print">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                    <input id="serialNo" placeholder="Index/Serial No" class="border border-slate-300 p-3 text-sm rounded-xl outline-none">
+                    <input id="roomNo" placeholder="Target Room ID *" class="border border-slate-300 p-3 text-sm rounded-xl outline-none font-bold">
+                    <input id="totalRoomField" type="number" placeholder="Comprehensive Rooms Count" class="border border-slate-300 p-3 text-sm rounded-xl outline-none">
+                </div>
+                <textarea id="workFinish" placeholder="Work Executed Details" class="w-full border border-slate-300 p-3 mb-3 text-sm rounded-xl outline-none" rows="2"></textarea>
+                <textarea id="workPending" placeholder="Work Remaining Details" class="w-full border border-slate-300 p-3 mb-4 text-sm rounded-xl outline-none" rows="2"></textarea>
+                <button onclick="addWorkLog()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-3 rounded-xl font-bold transition-all shadow-md mb-6">💾 Commit Logs Metrics State</button>
             </div>
-            <textarea id="workFinish" placeholder="Work Executed Details" class="w-full border border-slate-300 p-3 mb-3 text-sm rounded-xl outline-none" rows="2"></textarea>
-            <textarea id="workPending" placeholder="Work Remaining Details" class="w-full border border-slate-300 p-3 mb-4 text-sm rounded-xl outline-none" rows="2"></textarea>
-            <button onclick="addWorkLog()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-3 rounded-xl font-bold transition-all shadow-md mb-6">💾 Commit Logs Metrics State</button>
             
             <div class="border-b pb-3 mb-3">
-                <h2 class="font-bold text-md text-emerald-800">Room Work Matrix (Filtered Range)</h2>
+                <h2 class="font-bold text-md text-emerald-800 flex justify-between items-center">
+                    <span>📝 Room Work Matrix Logs</span>
+                    <!-- NEW SEPARATE PRINT BUTTON FOR WORK LOG -->
+                    <button onclick="window.print()" class="no-print bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm">🖨️ Print Work Logs Only</button>
+                </h2>
             </div>
             <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm mb-4">
                 <table class="w-full text-left text-xs border-collapse">
@@ -885,4 +906,4 @@
 
     </div>
 </body>
-</html>
+                    </html>
